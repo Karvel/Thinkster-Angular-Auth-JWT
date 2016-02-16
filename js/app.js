@@ -1,12 +1,15 @@
-;
-(function() {
-    function authInterceptor(API, auth) {
+(function()
+{
+    function authInterceptor(API, auth)
+    {
         return {
             //automatically attach uthorization header
-            request: function(config) {
+            request: function(config)
+            {
                 var token = auth.getToken();
 
-                if(config.url.indexOf(API) === 0 && token) {
+                if(config.url.indexOf(API) === 0 && token)
+                {
                     config.headers.Authorization = 'Bearer ' + token;
                 }//end if
 
@@ -15,33 +18,39 @@
 
             //If a token was sent back, save it
             response: function(res) {
-                if(res.config.url.indexOf(API) === 0  && res.data.token) {
+                if(res.config.url.indexOf(API) === 0  && res.data.token)
+                {
                     auth.saveToken(res.data.token);
-                }
+                }//end if
 
                 return res;
             },
-        }
-    }
+        };
+    }//end authInterceptor
 
-    function authService($window) {
+    function authService($window)
+    {
         var self = this;
 
-        self.parseJwt = function(token) {
+        self.parseJwt = function(token)
+        {
             var base64Url = token.split('.')[1];
             var base64 = base64Url.replace('-', '+').replace('_', '/');
             return JSON.parse($window.atob(base64));
-        }//end self.parseJwt
+        };//end self.parseJwt
 
-        self.saveToken = function(token) {
+        self.saveToken = function(token)
+        {
             $window.localStorage['jwtToken'] = token;
-        }//end self.saveToken
+        };//end self.saveToken
 
-        self.getToken = function() {
+        self.getToken = function()
+        {
             return $window.localStorage['jwtToken'];
-        }//end self.getToken
+        };//end self.getToken
 
-        self.isAuthed = function() {
+        self.isAuthed = function()
+        {
             var token = self.getToken();
             if(token) {
                 var params = self.parseJwt(token);
@@ -50,20 +59,22 @@
             else {
                 return false;
             }//end else
-        }//end self.isAuthed
+        };//end self.isAuthed
 
-        self.logout = function() {
+        self.logout = function()
+        {
             $window.localStorage.removeItem('jwtToken');
-        }//end self.logout
+        };//end self.logout
     }//end authService
 
-    function userService($http, API, auth) {
+    function userService($http, API, auth)
+    {
         var self = this;
 
         self.getQuote = function()
         {
             return $http.get(API + '/auth/quote');
-        }
+        };//end self.getQuote
 
         self.register = function(username, password)
         {
@@ -71,8 +82,8 @@
             {
                 username: username,
                 password: password
-            })
-        }
+            });
+        };//end self.register
 
         self.login = function(username, password)
         {
@@ -80,39 +91,47 @@
             {
                 username: username,
                 password: password
-            })
-        };
+            });
+        };//end self.login
     }
 
-    function MainCtrl(user, auth) {
+    function MainCtrl(user, auth)
+    {
         var self = this;
 
-        function handleRequest(res) {
+        function handleRequest(res)
+        {
             var token = res.data ? res.data.token : null;
-            if (token) {
+            if (token)
+            {
                 console.log('JWT:', token);
-            }
+            }//end if
             self.message = res.data.message;
-        }
+        }//end handleRequest
 
-        self.login = function() {
+        self.login = function()
+        {
             user.login(self.username, self.password)
                 .then(handleRequest, handleRequest);
-        }
-        self.register = function() {
+        };//end self.login
+        self.register = function()
+        {
             user.register(self.username, self.password)
                 .then(handleRequest, handleRequest);
-        }
-        self.getQuote = function() {
+        };//end self.register
+        self.getQuote = function()
+        {
             user.getQuote()
                 .then(handleRequest, handleRequest);
-        }
-        self.logout = function() {
+        };//end self.getQuote
+        self.logout = function()
+        {
             auth.logout && auth.logout();
-        }
-        self.isAuthed = function() {
+        };
+        self.isAuthed = function()
+        {
             return auth.isAuthed ? auth.isAuthed() : false;
-        }
+        };//end self.isAuthed
     }
 
     angular.module('app', [])
@@ -123,5 +142,5 @@
         .config(function($httpProvider) {
             $httpProvider.interceptors.push('authInterceptor');
         })
-        .controller('Main', MainCtrl)
+        .controller('Main', MainCtrl);
 })();
